@@ -7,8 +7,5 @@
   "routes": [
     { "src": "/api/audit", "dest": "server.js" },
     { "src": "/(.*)", "dest": "public/$1" }
-  ],
-  "env": {
-    "RANKNIBBLER_API_KEY": "@ranknibbler-api-key"
-  }
+  ]
 }
