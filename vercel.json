@@ -9,6 +9,6 @@
     { "src": "/(.*)", "dest": "public/$1" }
   ],
   "env": {
-    "RANKNIBBLER_API_KEY": "@ranknibbler-api-key"
+    "RANKNIBBLER_API_KEY": "rnk_live_290ae0e32c7dfbcb28aee201993a8935f69ba70e386ec589"
   }
 }

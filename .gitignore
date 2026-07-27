@@ -3,3 +3,5 @@ node_modules/
 Mike Notes/
 server-test.log
 server-test-err.log
+
+.vercel
