@@ -1,0 +1,13 @@
+{
+  "name": "SEO Audit",
+  "short_name": "SEO Audit",
+  "description": "Free SEO audit tool — analyze your website's on-page SEO in seconds",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f6ff",
+  "theme_color": "#6c5ce7",
+  "icons": [
+    { "src": "/icons/icon.svg", "type": "image/svg+xml", "sizes": "192x192" },
+    { "src": "/icons/icon.svg", "type": "image/svg+xml", "sizes": "512x512" }
+  ]
+}
