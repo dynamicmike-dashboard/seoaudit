@@ -1,4 +1,4 @@
-require('dotenv').config();
+try { require('dotenv').config(); } catch(e) {}
 const express = require('express');
 const nodemailer = require('nodemailer');
 const path = require('path');
