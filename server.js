@@ -83,13 +83,21 @@ app.post('/api/audit', async (req, res) => {
       return res.status(500).json({ error: 'API key not configured. Set RANKNIBBLER_API_KEY in .env' });
     }
 
-    const apiUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
-    apiUrl.searchParams.set('url', cleanUrl);
-
-    const auditRes = await fetch(apiUrl.toString(), {
+    // Probe call to verify key works standalone
+    const probeUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
+    probeUrl.searchParams.set('url', cleanUrl);
+    const probeRes = await fetch(probeUrl.toString(), {
       method: 'GET',
       headers: { 'X-API-Key': key },
     });
+    if (!probeRes.ok) {
+      const errText = await probeRes.text();
+      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeStatus: probeRes.status, probeError: errText.substring(0,200) });
+    }
+    const auditData = await probeRes.json();
+    return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeOk: true, dataKeys: Object.keys(auditData).join(',') });
+
+    /*
 
     if (!auditRes.ok) {
       const errText = await auditRes.text();
