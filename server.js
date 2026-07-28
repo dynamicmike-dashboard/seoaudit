@@ -13,6 +13,12 @@ const FROM_NAME = process.env.FROM_NAME || 'SEO Audit Report';
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+console.log('Server init: RN_API_KEY present =', !!process.env.RANKNIBBLER_API_KEY);
+
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, hasKey: !!RN_API_KEY, node: process.version });
+});
+
 let transporter = null;
 if (process.env.SMTP_HOST) {
   transporter = nodemailer.createTransport({
