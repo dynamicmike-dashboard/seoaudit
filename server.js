@@ -6,14 +6,18 @@ const path = require('path');
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000');
 
-const RN_API_KEY = process.env.RANKNIBBLER_API_KEY || process.env.SEOAUDIT_API_KEY;
+let RN_API_KEY;
+function reloadKey() {
+  RN_API_KEY = process.env.RANKNIBBLER_API_KEY || process.env.SEOAUDIT_API_KEY;
+}
+reloadKey();
 const FROM_EMAIL = process.env.FROM_EMAIL || 'reports@yourdomain.com';
 const FROM_NAME = process.env.FROM_NAME || 'SEO Audit Report';
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('Server init: RN_API_KEY present =', !!process.env.RANKNIBBLER_API_KEY);
+console.log('Server init: RANKNIBBLER_API_KEY present =', !!process.env.RANKNIBBLER_API_KEY, 'key length =', (process.env.RANKNIBBLER_API_KEY || '').length);
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, hasKey: !!RN_API_KEY, node: process.version });
@@ -35,6 +39,7 @@ if (process.env.SMTP_HOST) {
 app.post('/api/audit', async (req, res) => {
   try {
     const { url, email } = req.body || {};
+    console.log('POST /api/audit called', 'url:', url, 'email:', email, 'hasKey:', !!process.env.RANKNIBBLER_API_KEY, 'keyLen:', (process.env.RANKNIBBLER_API_KEY||'').length);
 
     if (!url || typeof url !== 'string') {
       return res.status(400).json({ error: 'Valid URL is required' });
@@ -45,7 +50,9 @@ app.post('/api/audit', async (req, res) => {
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
 
+    reloadKey();
     if (!RN_API_KEY) {
+      console.error('API key check FAILED - env keys:', Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY')).join(','));
       return res.status(500).json({ error: 'API key not configured. Set RANKNIBBLER_API_KEY in .env' });
     }
 
