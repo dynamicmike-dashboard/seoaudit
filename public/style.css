@@ -1,12 +1,12 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg: #0f0f11;
-  --surface: #1a1a1e;
-  --surface2: #242428;
-  --border: #2e2e34;
-  --text: #f0f0f2;
-  --text2: #a0a0ab;
+  --bg: #f8f6ff;
+  --surface: #ffffff;
+  --surface2: #f0ecf9;
+  --border: #e0d9f0;
+  --text: #1a1a2e;
+  --text2: #6b6580;
   --accent: #6c5ce7;
   --accent2: #a78bfa;
   --green: #10b981;
@@ -29,11 +29,13 @@ body {
 
 #tech-bg {
   position: fixed;
-  top: 0; left: 0;
+  top: 50%; left: 50%;
   width: 100vw;
   height: 100vh;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
   z-index: -1;
-  opacity: 0.3;
+  opacity: 0.25;
   pointer-events: none;
 }
 
@@ -43,7 +45,7 @@ body {
 .hero {
   padding: 4rem 0 3rem;
   text-align: center;
-  background: linear-gradient(180deg, #1a1a2e 0%, var(--bg) 100%);
+  background: linear-gradient(180deg, #ede6ff 0%, var(--bg) 100%);
 }
 
 .hero-badge {
@@ -120,7 +122,7 @@ body {
 }
 
 .input-wrap input:focus { border-color: var(--accent); }
-.input-wrap input::placeholder { color: #555; }
+.input-wrap input::placeholder { color: #aaa; }
 
 #submit-btn {
   width: 100%;
