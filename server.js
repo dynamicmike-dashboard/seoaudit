@@ -37,6 +37,19 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
+app.post('/api/checkkey', (req, res) => {
+  const key = process.env.RANKNIBBLER_API_KEY || process.env.SEOAUDIT_API_KEY;
+  res.json({
+    method: req.method,
+    path: '/api/checkkey',
+    rnKeyExists: 'RANKNIBBLER_API_KEY' in process.env,
+    rnKeyLength: (process.env.RANKNIBBLER_API_KEY || '').length,
+    seoKeyExists: 'SEOAUDIT_API_KEY' in process.env,
+    keyFound: !!key,
+    allKeys: Object.keys(process.env).filter(k => /api|key/i.test(k)),
+  });
+});
+
 let transporter = null;
 if (process.env.SMTP_HOST) {
   transporter = nodemailer.createTransport({
