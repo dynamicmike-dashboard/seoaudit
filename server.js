@@ -83,23 +83,78 @@ app.post('/api/audit', async (req, res) => {
       return res.status(500).json({ error: 'API key not configured. Set RANKNIBBLER_API_KEY in .env' });
     }
 
-    // Probe call to verify key works standalone
-    try {
-      const probeUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
-      probeUrl.searchParams.set('url', cleanUrl);
-      const probeRes = await fetch(probeUrl.toString(), {
-        method: 'GET',
-        headers: { 'X-API-Key': key },
-      });
-      if (!probeRes.ok) {
-        const errText = await probeRes.text();
-        return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeStatus: probeRes.status, probeError: errText.substring(0,200) });
-      }
-      const auditData = await probeRes.json();
-      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeOk: true, dataKeys: Object.keys(auditData).join(',') });
-    } catch (probeErr) {
-      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeException: probeErr.message, probeStack: (probeErr.stack||'').substring(0,300) });
+    const apiUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
+    apiUrl.searchParams.set('url', cleanUrl);
+    const auditRes = await fetch(apiUrl.toString(), {
+      method: 'GET',
+      headers: { 'X-API-Key': key },
+    });
+
+    if (!auditRes.ok) {
+      const errText = await auditRes.text();
+      let errMsg;
+      try { const e = JSON.parse(errText); errMsg = e.error || e.message || errText; }
+      catch { errMsg = errText; }
+      throw new Error(`RankNibbler API error: ${errMsg}`);
     }
+
+    const data = await auditRes.json();
+    const c = data.checks || {};
+
+    const report = {
+      url: data.url || cleanUrl,
+      host: new URL(data.url || cleanUrl).hostname,
+      score: data.score ?? 0,
+      grade: data.grade || 'N/A',
+      totalIssues: (data.issues || []).length,
+      issuesList: data.issues || [],
+      totalTests: 100,
+      passedTests: 100 - (data.issues || []).length,
+      title: c.title?.value || '',
+      metaDescription: c.metaDescription?.value || '',
+      isHttps: !!c.https,
+      titleLength: c.title?.length || 0,
+      metaDescLength: c.metaDescription?.length || 0,
+      wordCount: c.content?.wordCount || 0,
+      textToHtmlRatio: c.textToHtmlRatio ?? 0,
+      headings: c.headings || {},
+      images: c.images || {},
+      links: c.links || {},
+      canonical: c.canonical || {},
+      openGraph: c.openGraph || {},
+      structuredData: c.structuredData || {},
+      technical: c.technical || {},
+      markup: c.markup || {},
+      readability: c.readability || {},
+      performanceHints: c.performanceHints || {},
+      techStack: c.techStack || [],
+      socialLinks: c.socialLinks || [],
+      feeds: c.feeds || [],
+      robotsTxt: c.technical?.robots || '',
+      hasFavicon: !!c.meta?.favicon,
+      i18n: c.i18n || {},
+      schemaValidation: c.schemaValidation || [],
+      keywords: c.keywords || {},
+      accessibility: c.accessibility || {},
+      files: c.files || {},
+      usage: data.usage || {},
+    };
+
+    if (transporter) {
+      try {
+        const emailHtml = buildEmailHtml(report);
+        await transporter.sendMail({
+          from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+          to: email,
+          subject: `SEO Audit Report: ${report.host}`,
+          html: emailHtml,
+        });
+      } catch (mailErr) {
+        console.error('Email send failed (non-fatal):', mailErr.message);
+      }
+    }
+
+    res.json({ success: true, report });
 
   } catch (error) {
     console.error('Audit error:', error);
