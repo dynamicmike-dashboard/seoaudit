@@ -1,5 +1,69 @@
 document.getElementById('footer-year').textContent = new Date().getFullYear();
 
+// -- Tech background canvas animation --
+(function initTechBg() {
+  const canvas = document.getElementById('tech-bg');
+  const ctx = canvas.getContext('2d');
+  let w, h, particles = [];
+
+  function resize() {
+    w = canvas.width = window.innerWidth;
+    h = canvas.height = window.innerHeight;
+  }
+
+  function createParticles(count) {
+    particles = [];
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 1.5 + 0.5,
+      });
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, w, h);
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+
+      for (let j = i + 1; j < particles.length; j++) {
+        const q = particles[j];
+        const dx = p.x - q.x;
+        const dy = p.y - q.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 150) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = `rgba(108,92,231,${1 - dist / 150})`;
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        }
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = '#6c5ce7';
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+
+  resize();
+  createParticles(80);
+  draw();
+  window.addEventListener('resize', () => { resize(); createParticles(80); });
+})();
+
 const form = document.getElementById('audit-form');
 const submitBtn = document.getElementById('submit-btn');
 const btnText = submitBtn.querySelector('.btn-text');
@@ -51,7 +115,10 @@ function setLoading(loading) {
   btnLoading.hidden = !loading;
 }
 
+let lastReport = null;
+
 function renderReport(r) {
+  lastReport = r;
   document.getElementById('result-url').textContent = r.url;
 
   const score = Math.round(r.score);
@@ -145,3 +212,54 @@ function resetForm() {
   results.hidden = false;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
+
+// -- Download Report --
+document.getElementById('download-pdf').addEventListener('click', () => {
+  if (!lastReport) return;
+  const r = lastReport;
+  const score = Math.round(r.score);
+  const passed = r.passedTests || 0;
+  const issues = r.totalIssues || 0;
+  const issuesHtml = (r.issuesList || []).map(i => `<li>${i}</li>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>SEO Audit Report</title>
+<style>
+  body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .url { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .score-box { background: #f5f3ff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
+  .score-box strong { font-size: 2rem; color: #6c5ce7; }
+  .grid { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
+  .grid div { flex: 1; background: #fafafa; border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; text-align: center; }
+  .grid div span { display: block; font-size: 1.25rem; font-weight: 700; }
+  h2 { font-size: 1.1rem; margin: 1rem 0 0.5rem; }
+  ul { padding-left: 1.25rem; color: #444; }
+  li { margin-bottom: 0.35rem; }
+  .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; text-align: center; }
+  .cta { display: block; text-align: center; margin-top: 1.5rem; padding: 0.75rem; background: linear-gradient(135deg,#6c5ce7,#8b5cf6); color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; }
+</style></head><body>
+  <h1>SEO Audit Report</h1>
+  <p class="url">${r.url}</p>
+  <div class="score-box">Overall Score: <strong>${score}/100</strong></div>
+  <div class="grid">
+    <div><span>${passed}</span>Tests Passed</div>
+    <div><span>${issues}</span>Issues Found</div>
+  </div>
+  <h2>Issues</h2>
+  ${issuesHtml ? `<ul>${issuesHtml}</ul>` : '<p>No issues found.</p>'}
+  <a class="cta" href="https://1st-page-ranking.com" target="_blank">Optimise your site for ChatGPT, Claude, Perplexity, Google &rarr;</a>
+  <div class="footer">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</div>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `seo-audit-${r.url.replace(/https?:\/\//,'').replace(/[\/.]/g,'-')}.html`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+});
+
+
