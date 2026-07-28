@@ -20,7 +20,19 @@ app.use(express.static(path.join(__dirname, 'public')));
 console.log('Server init: RANKNIBBLER_API_KEY present =', !!process.env.RANKNIBBLER_API_KEY, 'key length =', (process.env.RANKNIBBLER_API_KEY || '').length);
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, hasKey: !!RN_API_KEY, node: process.version });
+  res.json({ ok: true, hasKey: !!process.env.RANKNIBBLER_API_KEY, node: process.version });
+});
+
+app.get('/api/debug', (req, res) => {
+  const envNames = Object.keys(process.env).filter(k => /api|key|secret|token/i.test(k));
+  res.json({
+    node: process.version,
+    vercel: !!process.env.VERCEL,
+    vercelEnv: process.env.VERCEL_ENV || 'unknown',
+    rnKeyExists: 'RANKNIBBLER_API_KEY' in process.env,
+    rnKeyLength: (process.env.RANKNIBBLER_API_KEY || '').length,
+    envNames,
+  });
 });
 
 let transporter = null;
@@ -50,9 +62,9 @@ app.post('/api/audit', async (req, res) => {
 
     const cleanUrl = url.startsWith('http') ? url : `https://${url}`;
 
-    reloadKey();
-    if (!RN_API_KEY) {
-      console.error('API key check FAILED - env keys:', Object.keys(process.env).filter(k => k.includes('API') || k.includes('KEY')).join(','));
+    const key = process.env.RANKNIBBLER_API_KEY || process.env.SEOAUDIT_API_KEY;
+    if (!key) {
+      console.error('API key check FAILED - env RANKNIBBLER_API_KEY present:', 'RANKNIBBLER_API_KEY' in process.env, 'length:', (process.env.RANKNIBBLER_API_KEY||'').length, 'allEnvKeys:', Object.keys(process.env).join(','));
       return res.status(500).json({ error: 'API key not configured. Set RANKNIBBLER_API_KEY in .env' });
     }
 
@@ -61,7 +73,7 @@ app.post('/api/audit', async (req, res) => {
 
     const auditRes = await fetch(apiUrl.toString(), {
       method: 'GET',
-      headers: { 'X-API-Key': RN_API_KEY },
+      headers: { 'X-API-Key': key },
     });
 
     if (!auditRes.ok) {
