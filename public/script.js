@@ -299,63 +299,60 @@ pdfBtn.addEventListener('click', () => {
 
   const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : score >= 40 ? '#f97316' : '#ef4444';
 
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;background:#fff;z-index:-1;';
-  el.innerHTML = `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:32px;color:#222;background:#fff;">
-      <div style="text-align:center;padding:24px;background:linear-gradient(135deg,#6c5ce7,#8b5cf6);border-radius:12px;margin-bottom:24px;">
-        <h1 style="margin:0;font-size:22px;font-weight:700;color:#fff;">SEO Audit Report</h1>
-        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.85);">${r.url}</p>
-      </div>
+  const issuesList = (r.issuesList || []).map(issue => {
+    const guide = matchGuide(issue);
+    const extra = guide
+      ? `<div style="margin:6px 0 0;padding:8px 10px;background:#f8f6ff;border-left:3px solid #6c5ce7;"><p style="margin:0 0 3px;font-size:11px;color:#555;"><strong>Why:</strong> ${guide.why}</p><p style="margin:0;font-size:11px;color:#555;"><strong>Fix:</strong> ${guide.fix}</p></div>`
+      : '';
+    return `<li style="margin-bottom:10px;font-size:12px;color:#333;">${issue}${extra}</li>`;
+  }).join('');
 
-      <div style="text-align:center;margin-bottom:20px;">
-        <div style="width:100px;height:100px;border-radius:50%;background:${scoreColor};margin:0 auto;position:relative;">
-          <div style="position:absolute;inset:8px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:${scoreColor};">${score}</div>
-        </div>
-        <p style="font-size:12px;color:#999;margin-top:6px;">Grade: ${r.grade} &middot; out of 100</p>
-      </div>
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>SEO Audit - ${r.host}</title>
+<style>
+  @page { margin: 0.5in; }
+  body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; color: #222; padding: 0; margin: 0; }
+  .page { max-width: 700px; margin: 0 auto; padding: 20px; }
+  .header { text-align: center; padding: 20px; background: linear-gradient(135deg,#6c5ce7,#8b5cf6); border-radius: 8px; color: #fff; margin-bottom: 20px; }
+  .header h1 { margin: 0; font-size: 20px; }
+  .header p { margin: 4px 0 0; font-size: 13px; opacity: 0.85; }
+  .score { text-align: center; margin-bottom: 16px; }
+  .score .num { font-size: 36px; font-weight: 700; color: ${scoreColor}; }
+  .score .grade { font-size: 12px; color: #999; }
+  .stats { display: flex; gap: 12px; margin-bottom: 20px; }
+  .stats div { flex: 1; text-align: center; padding: 10px; border-radius: 6px; font-size: 12px; }
+  .stats .pass { background: #f0fdf4; border: 1px solid #d1fae5; }
+  .stats .fail { background: #fef2f2; border: 1px solid #fecaca; }
+  .stats .num { display: block; font-size: 18px; font-weight: 700; }
+  h2 { font-size: 14px; margin: 20px 0 10px; padding-bottom: 4px; border-bottom: 2px solid #6c5ce7; }
+  ul { padding-left: 18px; }
+  li { margin-bottom: 10px; }
+  .footer { margin-top: 24px; padding: 12px; background: #f9fafb; text-align: center; font-size: 11px; color: #999; border-radius: 6px; border: 1px solid #e5e7eb; }
+  @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
+<div class="page">
+  <div class="header"><h1>SEO Audit Report</h1><p>${r.url}</p></div>
+  <div class="score"><span class="num">${score}/100</span><div class="grade">Grade: ${r.grade}</div></div>
+  <div class="stats">
+    <div class="pass"><span class="num">${passed}</span>Tests Passed</div>
+    <div class="fail"><span class="num">${issues}</span>Issues Found</div>
+  </div>
+  <h2>Issues &amp; Fix Guides</h2>
+  ${issuesList ? `<ul>${issuesList}</ul>` : '<p style="color:#10b981;">No issues found!</p>'}
+  <div class="footer">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;text-decoration:none;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</div>
+</div>
+<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script>
+</body></html>`;
 
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
-        <tr>
-          <td style="text-align:center;padding:12px;background:#f0fdf4;border-radius:8px;width:50%;border:1px solid #d1fae5;">
-            <div style="font-size:20px;font-weight:700;color:#10b981;">${passed}</div>
-            <div style="font-size:11px;color:#6b7280;">Tests Passed</div>
-          </td>
-          <td style="text-align:center;padding:12px;background:#fef2f2;border-radius:8px;width:50%;border:1px solid #fecaca;">
-            <div style="font-size:20px;font-weight:700;color:#ef4444;">${issues}</div>
-            <div style="font-size:11px;color:#6b7280;">Issues Found</div>
-          </td>
-        </tr>
-      </table>
-
-      <h2 style="font-size:16px;font-weight:600;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #6c5ce7;">Issues &amp; Fix Guides</h2>
-      ${issuesHtml ? `<ul style="padding-left:20px;list-style-type:disc;">${issuesHtml}</ul>` : '<p style="color:#10b981;font-size:14px;">No issues found! Your page looks great.</p>'}
-
-      <div style="margin-top:28px;padding:16px;background:#f9fafb;border-radius:8px;text-align:center;border:1px solid #e5e7eb;">
-        <p style="margin:0;font-size:13px;color:#6b7280;">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;text-decoration:none;font-weight:600;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</p>
-      </div>
-    </div>
-  `;
-
-  document.body.appendChild(el);
-  setTimeout(() => {
-    const opt = {
-      margin: [0.5, 0.5, 0.5, 0.5],
-      filename: `seo-audit-report-${r.host}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, logging: false, width: 700 },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-    };
-    html2pdf().set(opt).from(el).save().then(() => {
-      document.body.removeChild(el);
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  const checkClosed = setInterval(() => {
+    if (w.closed) {
+      clearInterval(checkClosed);
       pdfBtn.disabled = false;
       pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
-    }).catch(() => {
-      document.body.removeChild(el);
-      pdfBtn.disabled = false;
-      pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
-    });
-  }, 300);
+    }
+  }, 500);
 });
 
 
