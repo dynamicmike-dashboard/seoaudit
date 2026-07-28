@@ -84,18 +84,22 @@ app.post('/api/audit', async (req, res) => {
     }
 
     // Probe call to verify key works standalone
-    const probeUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
-    probeUrl.searchParams.set('url', cleanUrl);
-    const probeRes = await fetch(probeUrl.toString(), {
-      method: 'GET',
-      headers: { 'X-API-Key': key },
-    });
-    if (!probeRes.ok) {
-      const errText = await probeRes.text();
-      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeStatus: probeRes.status, probeError: errText.substring(0,200) });
+    try {
+      const probeUrl = new URL('https://www.ranknibbler.com/api/v1/audit');
+      probeUrl.searchParams.set('url', cleanUrl);
+      const probeRes = await fetch(probeUrl.toString(), {
+        method: 'GET',
+        headers: { 'X-API-Key': key },
+      });
+      if (!probeRes.ok) {
+        const errText = await probeRes.text();
+        return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeStatus: probeRes.status, probeError: errText.substring(0,200) });
+      }
+      const auditData = await probeRes.json();
+      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeOk: true, dataKeys: Object.keys(auditData).join(',') });
+    } catch (probeErr) {
+      return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeException: probeErr.message, probeStack: (probeErr.stack||'').substring(0,300) });
     }
-    const auditData = await probeRes.json();
-    return res.json({ debug: true, keyExists: true, keyLength: key.length, keyPrefix: key.substring(0,8), probeOk: true, dataKeys: Object.keys(auditData).join(',') });
 
     /*
 
