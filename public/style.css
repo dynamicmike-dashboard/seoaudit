@@ -328,6 +328,44 @@ body {
   color: var(--text2);
 }
 
+.issue-item {
+  width: 100%;
+  margin-bottom: 0.35rem;
+}
+
+.issue-details {
+  margin: 0.35rem 0 0 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(108,92,231,0.04);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.issue-details p { margin-bottom: 0.35rem; }
+.issue-details p:last-child { margin-bottom: 0; }
+.issue-why { color: var(--text2); }
+.issue-fix { color: var(--text); }
+
+.issue-toggle {
+  margin: 0.25rem 0 0 0.5rem;
+  padding: 0.2rem 0.6rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  color: var(--accent2);
+  cursor: pointer;
+}
+
+.issue-toggle:hover { background: var(--surface2); }
+
+.issue-items {
+  display: flex;
+  flex-direction: column;
+}
+
 .results-cta {
   display: flex;
   flex-direction: column;

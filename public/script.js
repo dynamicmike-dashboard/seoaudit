@@ -53,6 +53,109 @@ function setLoading(loading) {
 
 let lastReport = null;
 
+const seoGuides = {
+  'title': {
+    name: 'Title Tag',
+    why: 'The title appears in search results as the clickable headline. It is a primary ranking factor and the first thing users see.',
+    fix: 'Write a unique, descriptive title (30-60 characters) with your primary keyword near the front. Use a pipe or dash separator for branding.'
+  },
+  'meta description': {
+    name: 'Meta Description',
+    why: 'Meta descriptions appear under the title in search results. A compelling description increases click-through rates.',
+    fix: 'Write 50-160 characters summarizing the page with a clear value proposition and call to action.'
+  },
+  'heading': {
+    name: 'Heading Structure (H1/H2)',
+    why: 'Headings create a content hierarchy for users and search engines. H1 is the main title; H2s break up sections.',
+    fix: 'Use exactly one H1 per page matching the page topic. Add descriptive H2s for each content section.'
+  },
+  'canonical': {
+    name: 'Canonical Tag',
+    why: 'Canonical tags tell search engines which URL is the authoritative version, preventing duplicate content issues.',
+    fix: 'Add <link rel="canonical" href="..." /> pointing to the preferred URL version, especially for paginated or parameterized pages.'
+  },
+  'open graph': {
+    name: 'Open Graph Tags',
+    why: 'Open Graph tags control how your page appears when shared on Facebook, LinkedIn, WhatsApp, and other platforms.',
+    fix: 'Add og:title, og:description, og:image, and og:url meta tags to your page head.'
+  },
+  'structured data': {
+    name: 'Structured Data (JSON-LD)',
+    why: 'Structured data helps search engines understand your content and enables rich results like stars, FAQs, and recipes.',
+    fix: 'Add JSON-LD structured data appropriate to your content type (Article, Product, LocalBusiness, FAQ, etc.).'
+  },
+  'favicon': {
+    name: 'Favicon',
+    why: 'A favicon appears in browser tabs, bookmarks, and search result snippets. It builds brand recognition.',
+    fix: 'Add a <link rel="icon" href="/favicon.ico" /> or use PNG favicons with the appropriate size tags.'
+  },
+  'https': {
+    name: 'SSL / HTTPS',
+    why: 'HTTPS encrypts data between the user and your server. Google uses it as a ranking signal and browsers warn on non-HTTPS.',
+    fix: 'Install an SSL certificate (free via Let\'s Encrypt) and redirect all HTTP traffic to HTTPS using 301 redirects.'
+  },
+  'word count': {
+    name: 'Word Count (Content Depth)',
+    why: 'Thin content (under 300 words) often fails to satisfy search intent and ranks poorly.',
+    fix: 'Expand your content to at least 300 words per page. Cover the topic thoroughly with original research, examples, and actionable advice.'
+  },
+  'noindex': {
+    name: 'Noindex Tag',
+    why: 'A noindex tag tells search engines not to index the page. When used unintentionally, the page disappears from search results.',
+    fix: 'Remove the <meta name="robots" content="noindex" /> tag unless you specifically want the page excluded from search.'
+  },
+  'text/html ratio': {
+    name: 'Text-to-HTML Ratio',
+    why: 'A very low ratio suggests excessive code vs actual content, which can hurt rankings.',
+    fix: 'Minimize inline styles/scripts, move CSS/JS to external files, and ensure your page has substantial readable content.'
+  },
+  'internal links': {
+    name: 'Internal Links',
+    why: 'Internal links help search engines discover pages and distribute authority across your site.',
+    fix: 'Add contextual internal links between related pages using descriptive anchor text.'
+  },
+  'external links': {
+    name: 'External Links',
+    why: 'Linking to authoritative sources adds credibility and helps search engines understand your content.',
+    fix: 'Link to relevant authoritative sources with descriptive anchor text and rel="noopener" for security.'
+  },
+  'image alt': {
+    name: 'Image Alt Text',
+    why: 'Alt text helps search engines understand images and is used by screen readers for accessibility.',
+    fix: 'Add descriptive alt text to every image. Include keywords naturally where relevant.'
+  },
+  'hreflang': {
+    name: 'Hreflang Tags (i18n)',
+    why: 'Hreflang tags tell search engines which language/region version of a page to show to users.',
+    fix: 'Add <link rel="alternate" hreflang="x" href="..." /> for each language version of your page.'
+  },
+  'robots.txt': {
+    name: 'Robots.txt',
+    why: 'Robots.txt controls which parts of your site search engines can crawl. A missing or overly restrictive file can hide pages.',
+    fix: 'Create a robots.txt at /robots.txt allowing access to important pages and disallowing admin/private areas.'
+  },
+  'sitemap': {
+    name: 'XML Sitemap',
+    why: 'A sitemap helps search engines discover all pages on your site, especially new or deep pages.',
+    fix: 'Generate an XML sitemap and submit it in Google Search Console. Reference it in robots.txt.'
+  },
+  'viewport': {
+    name: 'Viewport / Mobile Friendliness',
+    why: 'Mobile-first indexing means Google primarily uses the mobile version for ranking and indexing.',
+    fix: 'Ensure your site uses responsive design with <meta name="viewport" content="width=device-width, initial-scale=1" />.'
+  },
+  'performance': {
+    name: 'Page Performance',
+    why: 'Page speed affects user experience and rankings. Slow pages have higher bounce rates.',
+    fix: 'Optimize images, minify CSS/JS, leverage browser caching, use a CDN, and consider lazy loading below-fold images.'
+  },
+  'thin content': {
+    name: 'Thin Content',
+    why: 'Pages with very little content provide little value to users and struggle to rank.',
+    fix: 'Expand thin pages with comprehensive coverage of the topic — aim for 300+ words of unique, useful content.'
+  }
+};
+
 function renderReport(r) {
   lastReport = r;
   document.getElementById('result-url').textContent = r.url;
@@ -130,12 +233,27 @@ function renderIssues(r) {
     return;
   }
 
+  function matchGuide(issueText) {
+    const lower = issueText.toLowerCase();
+    for (const [key, guide] of Object.entries(seoGuides)) {
+      if (lower.includes(key)) return guide;
+    }
+    return null;
+  }
+
+  const items = r.issuesList.map(issue => {
+    const guide = matchGuide(issue);
+    const details = guide
+      ? `<div class="issue-details" hidden><p class="issue-why"><strong>Why it matters:</strong> ${guide.why}</p><p class="issue-fix"><strong>How to fix:</strong> ${guide.fix}</p></div>
+         <button class="issue-toggle" onclick="this.previousElementSibling.hidden = !this.previousElementSibling.hidden; this.textContent = this.previousElementSibling.hidden ? 'Show guide' : 'Hide guide'">Show guide</button>`
+      : '';
+    return `<div class="issue-item"><span class="issue-tag">${issue}</span>${details}</div>`;
+  }).join('');
+
   const html = `
     <div class="issue-category">
       <h4>All Issues <span class="badge major-badge">${r.issuesList.length}</span></h4>
-      <div class="issue-items">
-        ${r.issuesList.map(i => `<span class="issue-tag">${i}</span>`).join('')}
-      </div>
+      <div class="issue-items">${items}</div>
     </div>
   `;
 
@@ -149,19 +267,35 @@ function resetForm() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// -- Download Report --
+// -- Print Report (Save as PDF) --
 document.getElementById('download-pdf').addEventListener('click', () => {
   if (!lastReport) return;
   const r = lastReport;
   const score = Math.round(r.score);
   const passed = r.passedTests || 0;
   const issues = r.totalIssues || 0;
-  const issuesHtml = (r.issuesList || []).map(i => `<li>${i}</li>`).join('');
+
+  function matchGuide(issueText) {
+    const lower = issueText.toLowerCase();
+    for (const [key, guide] of Object.entries(seoGuides)) {
+      if (lower.includes(key)) return guide;
+    }
+    return null;
+  }
+
+  const issuesHtml = (r.issuesList || []).map(issue => {
+    const guide = matchGuide(issue);
+    const extra = guide
+      ? `<p style="font-size:12px;color:#666;margin:4px 0 0;padding:8px;background:#f8f6ff;border-radius:6px;"><strong>Why:</strong> ${guide.why}<br><strong>Fix:</strong> ${guide.fix}</p>`
+      : '';
+    return `<li style="margin-bottom:10px;">${issue}${extra}</li>`;
+  }).join('');
 
   const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>SEO Audit Report</title>
+<html><head><meta charset="utf-8"><title>SEO Audit Report - ${r.host}</title>
 <style>
   body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; color: #222; }
+  .no-print { display: none; }
   h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
   .url { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
   .score-box { background: #f5f3ff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
@@ -169,12 +303,17 @@ document.getElementById('download-pdf').addEventListener('click', () => {
   .grid { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
   .grid div { flex: 1; background: #fafafa; border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; text-align: center; }
   .grid div span { display: block; font-size: 1.25rem; font-weight: 700; }
-  h2 { font-size: 1.1rem; margin: 1rem 0 0.5rem; }
+  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-top: 1px solid #eee; padding-top: 1rem; }
   ul { padding-left: 1.25rem; color: #444; }
-  li { margin-bottom: 0.35rem; }
+  li { margin-bottom: 0.5rem; }
   .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; text-align: center; }
   .cta { display: block; text-align: center; margin-top: 1.5rem; padding: 0.75rem; background: linear-gradient(135deg,#6c5ce7,#8b5cf6); color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; }
+  @media print { body { margin: 0; padding: 1rem; } }
 </style></head><body>
+  <div class="no-print" style="text-align:center;margin-bottom:1rem;padding:0.75rem;background:#f0ecf9;border-radius:8px;font-size:14px;">
+    &#128424; Save this page as PDF: <strong>File &rarr; Print &rarr; Save as PDF</strong> (or press Ctrl+P)
+    <br><button onclick="window.print()" style="margin-top:8px;padding:6px 20px;background:#6c5ce7;color:#fff;border:none;border-radius:6px;cursor:pointer;">Print / Save PDF Now</button>
+  </div>
   <h1>SEO Audit Report</h1>
   <p class="url">${r.url}</p>
   <div class="score-box">Overall Score: <strong>${score}/100</strong></div>
@@ -182,20 +321,16 @@ document.getElementById('download-pdf').addEventListener('click', () => {
     <div><span>${passed}</span>Tests Passed</div>
     <div><span>${issues}</span>Issues Found</div>
   </div>
-  <h2>Issues</h2>
+  <h2>Issues &amp; Fix Guides</h2>
   ${issuesHtml ? `<ul>${issuesHtml}</ul>` : '<p>No issues found.</p>'}
+  <h2>Get Expert Help</h2>
   <a class="cta" href="https://1st-page-ranking.com" target="_blank">Optimise your site for ChatGPT, Claude, Perplexity, Google &rarr;</a>
   <div class="footer">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</div>
 </body></html>`;
 
-  const blob = new Blob([html], { type: 'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `seo-audit-${r.url.replace(/https?:\/\//,'').replace(/[\/.]/g,'-')}.html`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
 });
 
 
