@@ -37,7 +37,7 @@ app.get('/api/debug', (req, res) => {
   });
 });
 
-app.post('/api/checkkey', (req, res) => {
+app.all('/api/checkkey', (req, res) => {
   const key = process.env.RANKNIBBLER_API_KEY || process.env.SEOAUDIT_API_KEY;
   res.json({
     method: req.method,
