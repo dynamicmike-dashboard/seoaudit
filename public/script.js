@@ -300,15 +300,16 @@ pdfBtn.addEventListener('click', () => {
   const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : score >= 40 ? '#f97316' : '#ef4444';
 
   const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;left:-9999px;top:0;width:700px;background:#fff;z-index:-1;';
   el.innerHTML = `
-    <div id="pdf-content" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:700px;margin:0 auto;padding:32px;color:#222;">
+    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:32px;color:#222;background:#fff;">
       <div style="text-align:center;padding:24px;background:linear-gradient(135deg,#6c5ce7,#8b5cf6);border-radius:12px;margin-bottom:24px;">
         <h1 style="margin:0;font-size:22px;font-weight:700;color:#fff;">SEO Audit Report</h1>
         <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.85);">${r.url}</p>
       </div>
 
       <div style="text-align:center;margin-bottom:20px;">
-        <div style="display:inline-block;width:100px;height:100px;border-radius:50%;background:conic-gradient(${scoreColor} ${score}%, #e5e7eb ${score}%);position:relative;">
+        <div style="width:100px;height:100px;border-radius:50%;background:${scoreColor};margin:0 auto;position:relative;">
           <div style="position:absolute;inset:8px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:${scoreColor};">${score}</div>
         </div>
         <p style="font-size:12px;color:#999;margin-top:6px;">Grade: ${r.grade} &middot; out of 100</p>
@@ -337,22 +338,24 @@ pdfBtn.addEventListener('click', () => {
   `;
 
   document.body.appendChild(el);
-  const opt = {
-    margin: [0.5, 0.5, 0.5, 0.5],
-    filename: `seo-audit-report-${r.host}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 2, useCORS: true },
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
-  };
-  html2pdf().set(opt).from(el).save().then(() => {
-    document.body.removeChild(el);
-    pdfBtn.disabled = false;
-    pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
-  }).catch(() => {
-    document.body.removeChild(el);
-    pdfBtn.disabled = false;
-    pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
-  });
+  setTimeout(() => {
+    const opt = {
+      margin: [0.5, 0.5, 0.5, 0.5],
+      filename: `seo-audit-report-${r.host}.pdf`,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { scale: 2, useCORS: true, logging: false, width: 700 },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    };
+    html2pdf().set(opt).from(el).save().then(() => {
+      document.body.removeChild(el);
+      pdfBtn.disabled = false;
+      pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
+    }).catch(() => {
+      document.body.removeChild(el);
+      pdfBtn.disabled = false;
+      pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
+    });
+  }, 300);
 });
 
 

@@ -1,31 +1,48 @@
 # PROJECT MANIFEST
 
 ## STATUS
-- **Current Goal:** SEO Audit Landing Page — external users enter a URL + email, receive a live on-page report + emailed HTML report.
-- **Last Session Date:** 2026-07-26
+- **Current Goal:** SEO Audit Landing Page — external users enter a URL + email, receive a live on-page report with fix guides + PDF download.
+- **Last Session Date:** 2026-07-28
 
 ## SYSTEM STATE
 - **Project Root:** `F:\Mike d drive\Mike Webs\mAIstermind.com\projects\seoaudit-landing`
-- **Backend:** Node.js/Express (`server.js`) on port 3000
+- **Backend:** Node.js/Express (`server.js`), deployed on Vercel as serverless function
 - **Frontend:** Vanilla HTML/CSS/JS in `public/`
 - **API:** RankNibbler (free tier, 100 audits/day)
-- **Email:** Nodemailer via SMTP (configured in `.env`)
-- **API Key (live, in .env):** `rnk_live_290ae0e32c7dfbcb28aee201993a8935f69ba70e386ec589`
+- **SMTP:** Nodemailer (not configured — no SMTP_HOST set)
+- **Vercel:** `dynamicmikes-projects/seoaudit` → `https://seoaudit-five.vercel.app`
+- **Git:** `https://github.com/dynamicmike-dashboard/seoaudit.git` (branch `main`)
+- **Vercel Token:** set in `.env` as `VERCEL_TOKEN`
+- **API Key:** set as Vercel env var `RANKNIBBLER_API_KEY`
 
 ## FILES
 | File | Purpose |
 |------|---------|
-| `server.js` | Express backend — serves landing page, proxies RankNibbler API, sends email |
-| `public/index.html` | Landing page with URL + email form, score ring, checks grid |
-| `public/style.css` | Dark theme, responsive layout |
-| `public/script.js` | Frontend logic — form submit, animated counters, render results |
+| `server.js` | Express backend — proxies RankNibbler API, health/debug endpoints, env-var key check |
+| `public/index.html` | Landing page — light pastel theme, video bg, URL+email form, score ring, issues with fix guides, PDF download button |
+| `public/style.css` | Light pastel theme (lavender/white), responsive layout, toggle guides |
+| `public/script.js` | Frontend — form submit, animated score ring, checks grid, issues with expandable fix guides (seoGuides), PDF download via html2pdf.js |
+| `vercel.json` | Routes `/api/(.*)` → `server.js`, static from `public/`, `@vercel/node` build |
+| `package.json` | Dependencies: express, nodemailer, dotenv; vercel-build script |
+| `.env` | Live config (not deployed to Vercel — env vars set in dashboard) |
 | `.env.example` | Config template |
-| `.env` | Live config (API key, SMTP settings) |
-| `package.json` | Dependencies: express, nodemailer, dotenv |
+| `SYSTEM_PROTOCOL.md` | AI behavior rules |
+| `PROJECT_MANIFEST.md` | This file — project state & memory |
+| `COMMANDS.md` | Task prompt library |
+
+## KEY DESIGN DECISIONS
+- No `.env` on Vercel — `RANKNIBBLER_API_KEY` set as Vercel Environment Variable in dashboard
+- Pastel light theme (`#f8f6ff` bg, white surfaces, lavender borders, navy text, `#6c5ce7` accent)
+- Background: Pexels tech video (`https://www.pexels.com/download/video/29718114/`) at 25% opacity
+- Footer: "Powered by 1st-page-ranking" → `https://1st-page-ranking.com`
+- Fix guides: each issue has a "Why it matters" + "How to fix" expandable toggle
+- PDF: one-click download via html2pdf.js CDN, A4 format with score ring, issues, and full fix guides
+- Email field kept for future GHL lead capture (not currently sent anywhere)
 
 ## PENDING / NEXT
-- [x] Push to GitHub
-- [x] Deploy to Vercel as subdomain
-- [ ] Configure SMTP to enable email delivery of reports
-- [ ] Add lead capture database (optional)
+- [x] Push to GitHub, deploy to Vercel
+- [x] Fix 500 error (unclosed `/*` block comment)
+- [x] Add PDF download with fix guides
+- [ ] Connect email leads to GHL CRM (webhook POST on audit completion)
+- [ ] Configure SMTP for email delivery (optional)
 - [ ] Rate limiting / abuse protection (optional)

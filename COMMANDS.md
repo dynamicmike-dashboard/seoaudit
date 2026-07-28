@@ -14,3 +14,6 @@
 
 ## TASK: WHITE-LABEL BRANDING
 "Initialize from SYSTEM_PROTOCOL.md. Read PROJECT_MANIFEST.md. Add BRAND_NAME, BRAND_COLOR, LOGO_URL to .env. Update landing page and email template to use dynamic branding."
+
+## TASK: CONNECT GHL LEAD CAPTURE
+"Initialize from SYSTEM_PROTOCOL.md. Read PROJECT_MANIFEST.md. After audit completes in server.js, POST { email, url, score, timestamp } to GHL_WEBHOOK_URL from .env. Log success/failure. Add GHL_WEBHOOK_URL to .env.example."
