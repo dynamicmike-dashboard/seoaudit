@@ -267,9 +267,12 @@ function resetForm() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// -- Print Report (Save as PDF) --
-document.getElementById('download-pdf').addEventListener('click', () => {
+// -- Download PDF --
+const pdfBtn = document.getElementById('download-pdf');
+pdfBtn.addEventListener('click', () => {
   if (!lastReport) return;
+  pdfBtn.disabled = true;
+  pdfBtn.textContent = 'Generating PDF...';
   const r = lastReport;
   const score = Math.round(r.score);
   const passed = r.passedTests || 0;
@@ -286,51 +289,70 @@ document.getElementById('download-pdf').addEventListener('click', () => {
   const issuesHtml = (r.issuesList || []).map(issue => {
     const guide = matchGuide(issue);
     const extra = guide
-      ? `<p style="font-size:12px;color:#666;margin:4px 0 0;padding:8px;background:#f8f6ff;border-radius:6px;"><strong>Why:</strong> ${guide.why}<br><strong>Fix:</strong> ${guide.fix}</p>`
+      ? `<div style="margin:6px 0 0 0;padding:10px 12px;background:#f8f6ff;border-left:3px solid #6c5ce7;border-radius:4px;">
+          <p style="margin:0 0 4px;font-size:12px;color:#444;line-height:1.5;"><strong>Why it matters:</strong> ${guide.why}</p>
+          <p style="margin:0;font-size:12px;color:#444;line-height:1.5;"><strong>How to fix:</strong> ${guide.fix}</p>
+         </div>`
       : '';
-    return `<li style="margin-bottom:10px;">${issue}${extra}</li>`;
+    return `<li style="margin-bottom:14px;font-size:13px;color:#333;line-height:1.5;">${issue}${extra}</li>`;
   }).join('');
 
-  const html = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>SEO Audit Report - ${r.host}</title>
-<style>
-  body { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; max-width: 700px; margin: 2rem auto; padding: 0 1rem; color: #222; }
-  .no-print { display: none; }
-  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
-  .url { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
-  .score-box { background: #f5f3ff; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem; }
-  .score-box strong { font-size: 2rem; color: #6c5ce7; }
-  .grid { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
-  .grid div { flex: 1; background: #fafafa; border: 1px solid #eee; border-radius: 6px; padding: 0.75rem; text-align: center; }
-  .grid div span { display: block; font-size: 1.25rem; font-weight: 700; }
-  h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; border-top: 1px solid #eee; padding-top: 1rem; }
-  ul { padding-left: 1.25rem; color: #444; }
-  li { margin-bottom: 0.5rem; }
-  .footer { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #eee; font-size: 0.8rem; color: #999; text-align: center; }
-  .cta { display: block; text-align: center; margin-top: 1.5rem; padding: 0.75rem; background: linear-gradient(135deg,#6c5ce7,#8b5cf6); color: #fff; border-radius: 8px; text-decoration: none; font-weight: 600; }
-  @media print { body { margin: 0; padding: 1rem; } }
-</style></head><body>
-  <div class="no-print" style="text-align:center;margin-bottom:1rem;padding:0.75rem;background:#f0ecf9;border-radius:8px;font-size:14px;">
-    &#128424; Save this page as PDF: <strong>File &rarr; Print &rarr; Save as PDF</strong> (or press Ctrl+P)
-    <br><button onclick="window.print()" style="margin-top:8px;padding:6px 20px;background:#6c5ce7;color:#fff;border:none;border-radius:6px;cursor:pointer;">Print / Save PDF Now</button>
-  </div>
-  <h1>SEO Audit Report</h1>
-  <p class="url">${r.url}</p>
-  <div class="score-box">Overall Score: <strong>${score}/100</strong></div>
-  <div class="grid">
-    <div><span>${passed}</span>Tests Passed</div>
-    <div><span>${issues}</span>Issues Found</div>
-  </div>
-  <h2>Issues &amp; Fix Guides</h2>
-  ${issuesHtml ? `<ul>${issuesHtml}</ul>` : '<p>No issues found.</p>'}
-  <h2>Get Expert Help</h2>
-  <a class="cta" href="https://1st-page-ranking.com" target="_blank">Optimise your site for ChatGPT, Claude, Perplexity, Google &rarr;</a>
-  <div class="footer">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</div>
-</body></html>`;
+  const scoreColor = score >= 80 ? '#10b981' : score >= 60 ? '#f59e0b' : score >= 40 ? '#f97316' : '#ef4444';
 
-  const w = window.open('', '_blank');
-  w.document.write(html);
-  w.document.close();
+  const el = document.createElement('div');
+  el.innerHTML = `
+    <div id="pdf-content" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;max-width:700px;margin:0 auto;padding:32px;color:#222;">
+      <div style="text-align:center;padding:24px;background:linear-gradient(135deg,#6c5ce7,#8b5cf6);border-radius:12px;margin-bottom:24px;">
+        <h1 style="margin:0;font-size:22px;font-weight:700;color:#fff;">SEO Audit Report</h1>
+        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.85);">${r.url}</p>
+      </div>
+
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="display:inline-block;width:100px;height:100px;border-radius:50%;background:conic-gradient(${scoreColor} ${score}%, #e5e7eb ${score}%);position:relative;">
+          <div style="position:absolute;inset:8px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:${scoreColor};">${score}</div>
+        </div>
+        <p style="font-size:12px;color:#999;margin-top:6px;">Grade: ${r.grade} &middot; out of 100</p>
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        <tr>
+          <td style="text-align:center;padding:12px;background:#f0fdf4;border-radius:8px;width:50%;border:1px solid #d1fae5;">
+            <div style="font-size:20px;font-weight:700;color:#10b981;">${passed}</div>
+            <div style="font-size:11px;color:#6b7280;">Tests Passed</div>
+          </td>
+          <td style="text-align:center;padding:12px;background:#fef2f2;border-radius:8px;width:50%;border:1px solid #fecaca;">
+            <div style="font-size:20px;font-weight:700;color:#ef4444;">${issues}</div>
+            <div style="font-size:11px;color:#6b7280;">Issues Found</div>
+          </td>
+        </tr>
+      </table>
+
+      <h2 style="font-size:16px;font-weight:600;margin:24px 0 12px;padding-bottom:6px;border-bottom:2px solid #6c5ce7;">Issues &amp; Fix Guides</h2>
+      ${issuesHtml ? `<ul style="padding-left:20px;list-style-type:disc;">${issuesHtml}</ul>` : '<p style="color:#10b981;font-size:14px;">No issues found! Your page looks great.</p>'}
+
+      <div style="margin-top:28px;padding:16px;background:#f9fafb;border-radius:8px;text-align:center;border:1px solid #e5e7eb;">
+        <p style="margin:0;font-size:13px;color:#6b7280;">Powered by <a href="https://1st-page-ranking.com" style="color:#6c5ce7;text-decoration:none;font-weight:600;">1st-page-ranking</a> &mdash; ${new Date().getFullYear()}</p>
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(el);
+  const opt = {
+    margin: [0.5, 0.5, 0.5, 0.5],
+    filename: `seo-audit-report-${r.host}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+  };
+  html2pdf().set(opt).from(el).save().then(() => {
+    document.body.removeChild(el);
+    pdfBtn.disabled = false;
+    pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
+  }).catch(() => {
+    document.body.removeChild(el);
+    pdfBtn.disabled = false;
+    pdfBtn.textContent = '\u{1F4C4} Download PDF Report';
+  });
 });
 
 
