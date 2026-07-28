@@ -1,10 +1,11 @@
-try { require('dotenv').config(); } catch(e) {}
 const express = require('express');
 const nodemailer = require('nodemailer');
 const path = require('path');
 
 const app = express();
 const PORT = parseInt(process.env.PORT || '3000');
+
+console.log('VERCEL env check:', process.env.VERCEL, process.env.VERCEL_ENV, process.env.VERCEL_URL);
 
 let RN_API_KEY;
 function reloadKey() {
@@ -18,6 +19,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 console.log('Server init: RANKNIBBLER_API_KEY present =', !!process.env.RANKNIBBLER_API_KEY, 'key length =', (process.env.RANKNIBBLER_API_KEY || '').length);
+console.log('All env keys:', Object.keys(process.env).join(', '));
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, hasKey: !!process.env.RANKNIBBLER_API_KEY, node: process.version });
