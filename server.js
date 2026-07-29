@@ -14,6 +14,7 @@ function reloadKey() {
 reloadKey();
 const FROM_EMAIL = process.env.FROM_EMAIL || 'reports@yourdomain.com';
 const FROM_NAME = process.env.FROM_NAME || 'SEO Audit Report';
+const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/b5jpbz7soz332cqcn3n67olhg32h59k5';
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -153,6 +154,12 @@ app.post('/api/audit', async (req, res) => {
         console.error('Email send failed (non-fatal):', mailErr.message);
       }
     }
+
+    fetch(MAKE_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, url: cleanUrl, score: report.score, grade: report.grade, host: report.host, issues: report.totalIssues, timestamp: new Date().toISOString() }),
+    }).catch(() => {});
 
     res.json({ success: true, report });
 
