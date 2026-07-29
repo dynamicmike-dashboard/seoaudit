@@ -8,9 +8,9 @@
 
 ## 2. STANDING ORDERS
 - **Vanilla First:** Vanilla JS only. No heavy frameworks.
-- **Design:** Pastel palette, Tailwind CDN, System fonts.
+- **Design:** Pastel palette, System fonts.
 - **Security:** Use `process.env`. Never hardcode keys/paths.
-- **Pathing:** All operations must be relative to `F:\Mike d drive\Mike Webs\mAIstermind.com\projects\seoaudit-landing`.
+- **Pathing:** All operations relative to `F:\Mike d drive\Mike Webs\mAIstermind.com\projects\seoaudit-landing`.
 
 ## 3. DATA INTEGRITY
 - Read `PROJECT_MANIFEST.md` before starting work and update it when you leave.
